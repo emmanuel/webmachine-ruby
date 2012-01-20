@@ -24,7 +24,8 @@ module Webmachine
         body = response.body
         chosen_charset = metadata['Charset']
         chosen_encoding = metadata['Content-Encoding']
-        charsetter = resource.charsets_provided && resource.charsets_provided.find {|c,_| c == chosen_charset }.last || :charset_nop
+        charset, charsetter = resource.charsets_provided.find { |c,_| c == chosen_charset }
+        charsetter ||= :charset_nop
         encoder = resource.encodings_provided[chosen_encoding]
         response.body = case body
                         when String # 1.8 treats Strings as Enumerable
@@ -63,9 +64,9 @@ module Webmachine
       def variances
         resource.variances.tap do |v|
           v.unshift "Accept-Language" if resource.languages_provided.size > 1
-          v.unshift "Accept-Charset" if resource.charsets_provided && resource.charsets_provided.size > 1
+          v.unshift "Accept-Charset"  if resource.charsets_provided.size > 1
           v.unshift "Accept-Encoding" if resource.encodings_provided.size > 1
-          v.unshift "Accept" if resource.content_types_provided.size > 1
+          v.unshift "Accept"          if resource.content_types_provided.size > 1
         end
       end
 

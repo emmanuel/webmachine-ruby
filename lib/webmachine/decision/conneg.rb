@@ -40,7 +40,7 @@ module Webmachine
       # chooses an appropriate charset.
       # @api private
       def choose_charset(provided, header)
-        if provided && !provided.empty?
+        if provided.any?
           charsets = provided.map {|c| c.first }
           if charset = do_choose(charsets, header, HAS_ENCODING ? Encoding.default_external.name : kcode_charset)
             metadata['Charset'] = charset
