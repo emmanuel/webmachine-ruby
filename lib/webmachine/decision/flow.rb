@@ -262,7 +262,7 @@ module Webmachine
         :h12
       end
 
-      # Last-Modified > I-UM-S?
+      # Last-Modified > If-Unmodified-Since?
       def h12
         resource.last_modified > metadata['If-Unmodified-Since'] ? 412 : :i12
       end
@@ -285,12 +285,12 @@ module Webmachine
         request.put? ? :i4 : :k7
       end
 
-      # If-none-match exists?
+      # If-None-Match exists?
       def i12
         request.if_none_match ? :i13 : :l13
       end
 
-      # If-none-match: * exists?
+      # If-None-Match: * exists?
       def i13
         request.if_none_match == "*" ? :j18 : :k13
       end
@@ -318,7 +318,7 @@ module Webmachine
         decision_test(resource.previously_existed?, true, :k5, :l7)
       end
 
-      # Etag in if-none-match?
+      # Etag in If-None-Match?
       def k13
         request_etags = request.if_none_match.split(/\s*,\s*/).map {|etag| unquote_header(etag) }
         request_etags.include?(resource.generate_etag) ? :j18 : :l13
@@ -347,7 +347,7 @@ module Webmachine
         request.if_modified_since ? :l14 : :m16
       end
 
-      # IMS is valid date?
+      # If-Modified-Since is valid date?
       def l14
         date = Time.httpdate(request.if_modified_since)
         metadata['If-Modified-Since'] = date
@@ -357,12 +357,12 @@ module Webmachine
         :l15
       end
 
-      # IMS > Now?
+      # If-Modified-Since > Now?
       def l15
         metadata['If-Modified-Since'] > Time.now ? :m16 : :l17
       end
 
-      # Last-Modified > IMS?
+      # Last-Modified > If-Modified-Since?
       def l17
         resource.last_modified.nil? || resource.last_modified > metadata['If-Modified-Since'] ? :m16 : 304
       end
