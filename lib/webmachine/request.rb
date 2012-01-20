@@ -10,6 +10,8 @@ module Webmachine
     attr_accessor :disp_path, :path_info, :path_tokens
 
     STANDARD_HTTP_METHODS = %w[GET HEAD POST PUT DELETE TRACE CONNECT OPTIONS]
+    # Pattern for quoted headers
+    QUOTED = /^"(.*)"$/
 
     # @param [String] method the HTTP request method
     # @param [URI] uri the requested URI, including host, scheme and
@@ -22,6 +24,39 @@ module Webmachine
     end
 
     def_delegators :headers, :[]
+
+    # Value of If-Modified-Since header as a Time object if valid, else nil
+    def if_modified_since
+      Time.httpdate(headers['if-modified-since'])
+    rescue ArgumentError
+      nil
+    end
+
+    # Value of If-Unmodified-Since header as a Time object if valid, else nil
+    def if_unmodified_since
+      Time.httpdate(headers['if-unmodified-since'])
+    rescue ArgumentError
+      nil
+    end
+
+    # Unquoted value of If-Match header
+    def if_match_value
+      unquote_header(headers['if-match'])
+    end
+
+    # Array of unquoted values from If-Match header
+    def if_match_values
+      headers['if-match'].split(/\s*,\s*/).map { |etag| unquote_header(etag) }
+    rescue
+      []
+    end
+
+    # Array of unquoted values from If-None-Match header
+    def if_none_match_values
+      headers['if-none-match'].split(/\s*,\s*/).map { |etag| unquote_header(etag) }
+    rescue
+      []
+    end
 
     # Enables quicker access to request headers by using a
     # lowercased-underscored version of the header name, e.g.
@@ -135,6 +170,17 @@ module Webmachine
     #   true if this request was made with the OPTIONS method
     def options?
       method == "OPTIONS"
+    end
+
+  private
+
+    # Unquotes request headers (like ETag)
+    def unquote_header(value)
+      if value =~ QUOTED
+        $1
+      else
+        value
+      end
     end
 
   end # class Request

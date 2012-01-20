@@ -222,7 +222,7 @@ module Webmachine
       # Resource exists?
       def g7
         # This is the first place after all conneg, so set Vary here
-        response.headers['Vary'] =  variances.join(", ") if variances.any?
+        response.headers['Vary'] = variances.join(", ") if variances.any?
         decision_test(resource.resource_exists?, true, :g8, :h7)
       end
 
@@ -238,13 +238,12 @@ module Webmachine
 
       # ETag in If-Match
       def g11
-        request_etags = request.if_match.split(/\s*,\s*/).map {|etag| unquote_header(etag) }
-        request_etags.include?(resource.generate_etag) ? :h10 : 412
+        request.if_match_values.include?(resource.generate_etag) ? :h10 : 412
       end
 
       # If-Match exists?
       def h7
-        (request.if_match && unquote_header(request.if_match) == '*') ? 412 : :i7
+        request.if_match_value == '*' ? 412 : :i7
       end
 
       # If-Unmodified-Since exists?
@@ -254,12 +253,12 @@ module Webmachine
 
       # If-Unmodified-Since is valid date?
       def h11
-        date = Time.httpdate(request.if_unmodified_since)
-        metadata['If-Unmodified-Since'] = date
-      rescue ArgumentError
-        :i12
-      else
-        :h12
+        if date = request.if_unmodified_since
+          metadata['If-Unmodified-Since'] = date
+          :h12
+        else
+          :i12
+        end
       end
 
       # Last-Modified > If-Unmodified-Since?
@@ -320,8 +319,7 @@ module Webmachine
 
       # Etag in If-None-Match?
       def k13
-        request_etags = request.if_none_match.split(/\s*,\s*/).map {|etag| unquote_header(etag) }
-        request_etags.include?(resource.generate_etag) ? :j18 : :l13
+        request.if_none_match_values.include?(resource.generate_etag) ? :j18 : :l13
       end
 
       # Moved temporarily?
@@ -349,12 +347,12 @@ module Webmachine
 
       # If-Modified-Since is valid date?
       def l14
-        date = Time.httpdate(request.if_modified_since)
-        metadata['If-Modified-Since'] = date
-      rescue ArgumentError
-        :m16
-      else
-        :l15
+        if date = request.if_modified_since
+          metadata['If-Modified-Since'] = date
+          :l15
+        else
+          :m16
+        end
       end
 
       # If-Modified-Since > Now?

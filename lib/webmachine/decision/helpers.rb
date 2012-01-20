@@ -57,15 +57,6 @@ module Webmachine
         end
       end
 
-      # Unquotes request headers (like ETag)
-      def unquote_header(value)
-        if value =~ QUOTED
-          $1
-        else
-          value
-        end
-      end
-
       # Assists in receiving request bodies
       def accept_helper
         content_type = MediaType.parse(request.content_type || 'application/octet-stream')
