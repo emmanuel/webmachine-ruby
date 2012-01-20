@@ -48,15 +48,6 @@ module Webmachine
         end
       end
 
-      # Ensures that a header is quoted (like ETag)
-      def ensure_quoted_header(value)
-        if value =~ QUOTED
-          value
-        else
-          '"' << value << '"'
-        end
-      end
-
       # Assists in receiving request bodies
       def accept_helper
         content_type = MediaType.parse(request.content_type || 'application/octet-stream')
@@ -80,16 +71,11 @@ module Webmachine
 
       # Adds caching-related headers to the response.
       def add_caching_headers
-        if etag = resource.generate_etag
-          response.headers['ETag'] = ensure_quoted_header(etag)
-        end
-        if expires = resource.expires
-          response.headers['Expires'] = expires.httpdate
-        end
-        if modified = resource.last_modified
-          response.headers['Last-Modified'] = modified.httpdate
-        end
+        response.etag          = resource.generate_etag
+        response.expires       = resource.expires
+        response.last_modified = resource.last_modified
       end
     end # module Helpers
   end # module Decision
 end # module Webmachine
+

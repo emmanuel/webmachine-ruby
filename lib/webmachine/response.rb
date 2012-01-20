@@ -1,6 +1,9 @@
 module Webmachine
   # Represents an HTTP response from Webmachine.
   class Response
+    # Pattern for quoted headers
+    QUOTED = /^"(.*)"$/
+
     # @return [Hash] Response headers that will be sent to the client
     attr_reader :headers
 
@@ -46,6 +49,38 @@ module Webmachine
 
     alias :is_redirect? :redirect
     alias :redirect_to :do_redirect
+
+    # Set the ETag header for this response if a value is given
+    # @param [#to_s] etag
+    #   the value to which the ETag header is to be set
+    def etag=(etag)
+      headers['ETag'] = ensure_quoted_header(etag) if etag
+    end
+
+    # Set the Expires header for this response if a value is given
+    # @param [#httpdate] expires
+    #   the value to which the Expires header is to be set
+    def expires=(expires)
+      headers['Expires'] = expires.httpdate if expires
+    end
+
+    # Set the Last-Modified header for this response if a value is given
+    # @param [#httpdate] last_modified
+    #   the value to which the Last-Modified header is to be set
+    def last_modified=(last_modified)
+      headers['Last-Modified'] = last_modified.httpdate if last_modified
+    end
+
+  private
+
+    # Ensures that a header is quoted (like ETag)
+    def ensure_quoted_header(value)
+      if value =~ QUOTED
+        value
+      else
+        '"' << value << '"'
+      end
+    end
 
   end # class Response
 end # module Webmachine
